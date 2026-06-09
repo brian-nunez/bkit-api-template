@@ -3,7 +3,7 @@ tmp/
 *.exe
 *.test
 bin/
-server
+/server
 main
 
 # OS files
