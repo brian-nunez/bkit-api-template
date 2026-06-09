@@ -1,0 +1,47 @@
+@import 'tailwindcss' source(none);
+
+@theme {
+  --color-background: #020617; /* slate-950 */
+  --color-foreground: #f8fafc; /* slate-50 */
+  
+  --color-card: rgba(15, 23, 42, 0.4); /* slate-900/40 */
+  --color-card-foreground: #f1f5f9; /* slate-100 */
+  
+  --color-popover: #0f172a; /* slate-900 */
+  --color-popover-foreground: #f1f5f9;
+  
+  --color-primary: #6366f1; /* indigo-500 */
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: rgba(30, 41, 59, 0.5); /* slate-800/50 */
+  --color-secondary-foreground: #cbd5e1; /* slate-300 */
+  
+  --color-muted: #1e293b; /* slate-800 */
+  --color-muted-foreground: #94a3b8; /* slate-400 */
+  
+  --color-accent: rgba(99, 102, 241, 0.15); /* indigo-500/15 */
+  --color-accent-foreground: #e0e7ff; /* indigo-100 */
+  
+  --color-destructive: #ef4444; /* red-500 */
+  --color-destructive-foreground: #ffffff;
+  
+  --color-border: rgba(30, 41, 59, 0.6); /* slate-800/60 */
+  --color-input: #1e293b; /* slate-800 */
+  --color-ring: rgba(99, 102, 241, 0.5); /* indigo-500/50 */
+  
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.25rem;
+}
+
+/* Container paths (absolute within Docker workspace) */
+@source "/workspace/bkit-api-template/views/pages/**/*.templ";
+@source "/workspace/bkit-api-template/views/components/**/*.templ";
+@source "/workspace/bkit-api-template/views/components/**/*.go";
+@source "/workspace/bkit-api-template/views/utils/**/*.go";
+
+/* Host paths (relative to assets/css/input.css) */
+@source "../../views/pages/**/*.templ";
+@source "../../views/components/**/*.templ";
+@source "../../views/components/**/*.go";
+@source "../../views/utils/**/*.go";

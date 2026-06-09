@@ -1,0 +1,609 @@
+package pages
+
+import (
+	"github.com/brian-nunez/bkit-api-template/views/components/badge"
+	"github.com/brian-nunez/bkit-api-template/views/components/button"
+	"github.com/brian-nunez/bkit-api-template/views/components/card"
+	"github.com/brian-nunez/bkit-api-template/views/components/tabs"
+	"github.com/brian-nunez/bkit-api-template/views/components/table"
+)
+
+type ServiceStatus struct {
+	DBConnected        bool
+	KVConnected        bool
+	TelemetryConnected bool
+	DBError            string
+	KVError            string
+	TelemetryError     string
+	DBDriver           string
+	KVDriver           string
+	Environment        string
+	ServiceName        string
+	Uptime             string
+}
+
+templ Home(status ServiceStatus) {
+	@Layout(status.ServiceName + " - System Console") {
+		<div class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
+			<!-- Background Grid Effects -->
+			<div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.45)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.45)_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
+			<!-- Top Nav Bar -->
+			<header class="sticky top-0 z-40 border-b border-slate-900/80 bg-slate-950/75 backdrop-blur-md">
+				<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+					<div class="flex items-center space-x-3.5">
+						<div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/10 border border-white/10">
+							<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+							</svg>
+						</div>
+						<div>
+							<h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+								{ status.ServiceName }
+								<span class="text-[10px] bg-slate-800 text-slate-400 font-mono font-medium px-1.5 py-0.5 rounded">v1.0.0</span>
+							</h1>
+							<p class="text-[9px] text-indigo-400/80 font-bold tracking-widest uppercase">Developer Platform Console</p>
+						</div>
+					</div>
+					<div class="flex items-center space-x-4">
+						<div class="flex items-center space-x-2 bg-slate-900/50 border border-slate-800/80 rounded-full px-3 py-1 text-xs">
+							<span class="relative flex h-2 w-2">
+								<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+								<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+							</span>
+							<span class="text-slate-400">Env:</span>
+							<span class="font-bold text-emerald-400">{ status.Environment }</span>
+						</div>
+					</div>
+				</div>
+			</header>
+			<!-- Main Content -->
+			<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full relative z-10">
+				<!-- Page Header / Hero Summary -->
+				<div class="relative overflow-hidden rounded-2xl border border-slate-900 bg-gradient-to-b from-slate-900/40 via-slate-900/10 to-transparent p-6 md:p-8 mb-8">
+					<div class="absolute -right-24 -top-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+					<div class="absolute -left-24 -bottom-24 w-96 h-96 bg-violet-500/5 rounded-full blur-[90px] pointer-events-none"></div>
+					<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+						<div class="max-w-2xl">
+							<h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
+								Active Service <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Dashboard</span>
+							</h2>
+							<p class="text-slate-400 text-xs md:text-sm leading-relaxed">
+								A production boilerplate compiled on-the-fly inside Docker. Configs, DB, Cache, and Telemetry layers are initialized and active via the <code class="text-indigo-400 font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800/60">bkit</code> architecture.
+							</p>
+						</div>
+						<div class="flex items-center gap-3 shrink-0">
+							@button.Button(button.Props{
+								Href:    "https://github.com/brian-nunez",
+								Target:  "_blank",
+								Variant: button.VariantOutline,
+								Class:   "border-slate-850 hover:bg-slate-900 hover:text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all duration-300 shadow-sm shadow-black/50",
+							}) {
+								Check out my GitHub
+							}
+							@button.Button(button.Props{
+								ID:      "refresh-btn",
+								Variant: button.VariantDefault,
+								Class:   "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-lg shadow-indigo-500/10 border-0 transition-all duration-300 h-9",
+								Attributes: templ.Attributes{
+									"hx-get":       "/api/status",
+									"hx-target":    "#status-container",
+									"hx-swap":      "outerHTML",
+									"hx-trigger":   "click",
+									"hx-indicator": "#refresh-spinner",
+								},
+							}) {
+								<span class="flex items-center space-x-2">
+									<svg id="refresh-spinner" class="animate-spin h-3.5 w-3.5 text-white htmx-indicator hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+										<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+										<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+									</svg>
+									<span>Refresh Console</span>
+								</span>
+							}
+						</div>
+					</div>
+				</div>
+				<!-- Navigation Tabs wrapper -->
+				@tabs.Tabs(tabs.Props{ID: "dashboard-tabs", Class: "w-full"}) {
+					<div class="flex items-center justify-between border-b border-slate-900 pb-3.5 mb-6">
+						@tabs.List(tabs.ListProps{Class: "bg-slate-950 border border-slate-900/80 rounded-xl p-1 gap-1 flex items-center"}) {
+							@tabs.Trigger(tabs.TriggerProps{Value: "status", IsActive: true, Class: "px-4 py-1.5 rounded-lg text-xs font-semibold data-[tui-tabs-state=active]:bg-indigo-500/10 data-[tui-tabs-state=active]:text-indigo-400 border-0"}) {
+								<span class="flex items-center gap-2">
+									<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+									</svg>
+									Services Status
+								</span>
+							}
+							@tabs.Trigger(tabs.TriggerProps{Value: "config", Class: "px-4 py-1.5 rounded-lg text-xs font-semibold data-[tui-tabs-state=active]:bg-indigo-500/10 data-[tui-tabs-state=active]:text-indigo-400 border-0"}) {
+								<span class="flex items-center gap-2">
+									<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+									</svg>
+									Configurations
+								</span>
+							}
+							@tabs.Trigger(tabs.TriggerProps{Value: "diagnostics", Class: "px-4 py-1.5 rounded-lg text-xs font-semibold data-[tui-tabs-state=active]:bg-indigo-500/10 data-[tui-tabs-state=active]:text-indigo-400 border-0"}) {
+								<span class="flex items-center gap-2">
+									<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+									</svg>
+									Diagnostics
+								</span>
+							}
+						}
+						<div class="text-[11px] text-slate-500 font-mono hidden sm:block">
+							Uptime: <span class="text-slate-300 font-medium">{ status.Uptime }</span>
+						</div>
+					</div>
+					<!-- Tab Content 1: System Status -->
+					@tabs.Content(tabs.ContentProps{Value: "status", IsActive: true, Class: "space-y-8"}) {
+						<!-- Status Grid Container -->
+						<div id="status-container">
+							@StatusGrid(status)
+						</div>
+						<!-- Background Worker Logs -->
+						@card.Card(card.Props{Class: "border-slate-900 bg-slate-900/10 backdrop-blur-sm shadow-xl p-6 relative overflow-hidden"}) {
+							<div class="flex items-center justify-between mb-4">
+								<div class="flex items-center space-x-2.5">
+									<div class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+										<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+										</svg>
+									</div>
+									<h3 class="text-sm font-bold text-white tracking-tight">BACKGROUND WORKER LOGS</h3>
+								</div>
+								<div class="flex items-center space-x-2">
+									<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+									<span class="text-[10px] text-slate-500 font-mono">Worker active</span>
+								</div>
+							</div>
+							<div class="rounded-xl border border-slate-900 bg-slate-950 p-4 font-mono text-[11px] leading-relaxed text-slate-400 max-h-56 overflow-y-auto scrollbar-thin space-y-2">
+								<div class="flex items-start gap-2.5 border-b border-slate-900/60 pb-1.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:17:56]</span>
+									<span class="text-indigo-400 shrink-0 font-bold">[Worker]</span>
+									<span class="text-slate-300">Initialized brun.Manager coordinator and registered worker threads</span>
+								</div>
+								<div class="flex items-start gap-2.5 border-b border-slate-900/60 pb-1.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:17:56]</span>
+									<span class="text-indigo-400 shrink-0 font-bold">[Worker]</span>
+									<span class="text-slate-300">Started polling routine. Target interval: <span class="text-amber-450 font-bold">15s</span></span>
+								</div>
+								<div class="flex items-start gap-2.5 border-b border-slate-900/60 pb-1.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:18:11]</span>
+									<span class="text-indigo-400 shrink-0 font-bold">[Worker]</span>
+									<span class="text-slate-400">Performing periodic health checks & background sync...</span>
+								</div>
+								<div class="flex items-start gap-2.5 border-b border-slate-900/60 pb-1.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:18:11]</span>
+									<span class="text-emerald-500 shrink-0 font-bold">[DB INFO]</span>
+									<span class="text-slate-500">DB connection is healthy. Driver: { status.DBDriver }</span>
+								</div>
+								<div class="flex items-start gap-2.5 border-b border-slate-900/60 pb-1.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:18:11]</span>
+									<span class="text-emerald-500 shrink-0 font-bold">[KV INFO]</span>
+									<span class="text-slate-500">KV store connection is healthy. Driver: { status.KVDriver }</span>
+								</div>
+								<div class="flex items-start gap-2.5 border-b border-slate-900/60 pb-1.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:18:26]</span>
+									<span class="text-indigo-400 shrink-0 font-bold">[Worker]</span>
+									<span class="text-slate-400">Performing periodic health checks & background sync...</span>
+								</div>
+								<div class="flex items-start gap-2.5">
+									<span class="text-slate-650 shrink-0 select-none">[01:18:26]</span>
+									<span class="text-emerald-500 shrink-0 font-bold">[SUCCESS]</span>
+									<span class="text-emerald-400 font-semibold">All configured dependencies passed health checks. System: NORMAL.</span>
+								</div>
+							</div>
+						}
+					}
+					<!-- Tab Content 2: Configurations -->
+					@tabs.Content(tabs.ContentProps{Value: "config"}) {
+						@card.Card(card.Props{Class: "border-slate-900 bg-slate-900/10 backdrop-blur-sm shadow-xl p-6"}) {
+							<div class="mb-5">
+								<h3 class="text-sm font-bold text-white tracking-tight mb-1">CONFIGURATION VARIABLES</h3>
+								<p class="text-xs text-slate-400">Active configuration system. Variables are merged from <code class="text-slate-350">config.yaml</code> and runtime environment values.</p>
+							</div>
+							<div class="rounded-xl border border-slate-900 overflow-hidden bg-slate-950/40">
+								@table.Table(table.Props{Class: "min-w-full text-slate-300"}) {
+									@table.Header(table.HeaderProps{Class: "bg-slate-950/80 border-b border-slate-900 text-slate-400 font-mono text-[10px] tracking-wider uppercase"}) {
+										@table.Row() {
+											@table.Head(table.HeadProps{Class: "p-3.5 text-left font-bold"}) {
+												MODULE 
+											}
+											@table.Head(table.HeadProps{Class: "p-3.5 text-left font-bold"}) {
+												KEY 
+											}
+											@table.Head(table.HeadProps{Class: "p-3.5 text-left font-bold"}) {
+												RESOLVED VALUE 
+											}
+											@table.Head(table.HeadProps{Class: "p-3.5 text-left font-bold"}) {
+												SOURCE 
+											}
+											@table.Head(table.HeadProps{Class: "p-3.5 text-center font-bold"}) {
+												STATUS 
+											}
+										}
+									}
+									@table.Body() {
+										@table.Row(table.RowProps{Class: "border-b border-slate-900/60 text-xs"}) {
+											@table.Cell(table.CellProps{Class: "p-3.5 font-bold font-mono text-indigo-400"}) {
+												bconfig 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-300"}) {
+												server.port 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-400"}) {
+												8080 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-slate-500"}) {
+												environment 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-center"}) {
+												@badge.Badge(badge.Props{Class: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold"}) {
+													ACTIVE 
+												}
+											}
+										}
+										@table.Row(table.RowProps{Class: "border-b border-slate-900/60 text-xs"}) {
+											@table.Cell(table.CellProps{Class: "p-3.5 font-bold font-mono text-indigo-400"}) {
+												bdb 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-300"}) {
+												db.driver 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-emerald-400 font-semibold"}) {
+												{ status.DBDriver }
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-slate-500"}) {
+												environment 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-center"}) {
+												@badge.Badge(badge.Props{Class: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold"}) {
+													ACTIVE 
+												}
+											}
+										}
+										@table.Row(table.RowProps{Class: "border-b border-slate-900/60 text-xs"}) {
+											@table.Cell(table.CellProps{Class: "p-3.5 font-bold font-mono text-indigo-400"}) {
+												bdb 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-300"}) {
+												db.max_open_conns 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-400"}) {
+												10 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-slate-500"}) {
+												config.yaml 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-center"}) {
+												@badge.Badge(badge.Props{Class: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold"}) {
+													ACTIVE 
+												}
+											}
+										}
+										@table.Row(table.RowProps{Class: "border-b border-slate-900/60 text-xs"}) {
+											@table.Cell(table.CellProps{Class: "p-3.5 font-bold font-mono text-indigo-400"}) {
+												bkv 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-300"}) {
+												kv.driver 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-emerald-400 font-semibold"}) {
+												{ status.KVDriver }
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-slate-500"}) {
+												environment 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-center"}) {
+												@badge.Badge(badge.Props{Class: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold"}) {
+													ACTIVE 
+												}
+											}
+										}
+										@table.Row(table.RowProps{Class: "border-b border-slate-900/60 text-xs"}) {
+											@table.Cell(table.CellProps{Class: "p-3.5 font-bold font-mono text-indigo-400"}) {
+												btelemetry 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-300"}) {
+												telemetry.enabled 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-400"}) {
+												true 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-slate-500"}) {
+												config.yaml 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-center"}) {
+												@badge.Badge(badge.Props{Class: "bg-indigo-500/10 text-indigo-450 border-indigo-500/20 px-2 py-0.5 rounded text-[10px] font-bold"}) {
+													ENABLED 
+												}
+											}
+										}
+										@table.Row(table.RowProps{Class: "text-xs"}) {
+											@table.Cell(table.CellProps{Class: "p-3.5 font-bold font-mono text-indigo-400"}) {
+												btelemetry 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-300"}) {
+												telemetry.service_name 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 font-mono text-slate-400"}) {
+												{ status.ServiceName }
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-slate-500"}) {
+												config.yaml 
+											}
+											@table.Cell(table.CellProps{Class: "p-3.5 text-center"}) {
+												@badge.Badge(badge.Props{Class: "bg-indigo-500/10 text-indigo-450 border-indigo-500/20 px-2 py-0.5 rounded text-[10px] font-bold"}) {
+													ENABLED 
+												}
+											}
+										}
+									}
+								}
+							</div>
+						}
+					}
+					<!-- Tab Content 3: Diagnostics -->
+					@tabs.Content(tabs.ContentProps{Value: "diagnostics", Class: "grid grid-cols-1 md:grid-cols-3 gap-6"}) {
+						<!-- Quick Diagnostics Control -->
+						@card.Card(card.Props{Class: "border-slate-900 bg-slate-900/10 backdrop-blur-sm shadow-xl p-6 md:col-span-1 h-fit"}) {
+							<h3 class="text-sm font-bold text-white tracking-tight mb-1">PLATFORM QUICK PING</h3>
+							<p class="text-xs text-slate-400 mb-5">Fetch raw telemetry endpoint metrics directly in the console.</p>
+							<div class="space-y-4">
+								@button.Button(button.Props{
+									Variant: button.VariantOutline,
+									Class:   "w-full justify-center border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all duration-300",
+									Attributes: templ.Attributes{
+										"hx-get":       "/metrics",
+										"hx-target":    "#diagnostics-output",
+										"hx-swap":      "innerHTML",
+										"hx-trigger":   "click",
+										"hx-indicator": "#metrics-spinner",
+									},
+								}) {
+									<span class="flex items-center space-x-2">
+										<svg id="metrics-spinner" class="animate-spin h-3.5 w-3.5 text-slate-400 htmx-indicator hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+										</svg>
+										<span>Pull Prometheus Metrics</span>
+									</span>
+								}
+								<div class="text-[10px] text-slate-500 leading-normal font-mono bg-slate-950/50 rounded-xl p-3 border border-slate-900/40">
+									<div class="flex justify-between border-b border-slate-900/60 pb-1.5 mb-1.5">
+										<span>Active Goroutines:</span>
+										<span class="text-indigo-400 font-bold">12</span>
+									</div>
+									<div class="flex justify-between border-b border-slate-900/60 pb-1.5 mb-1.5">
+										<span>Heap Allocated:</span>
+										<span class="text-indigo-400 font-bold">4.46 MB</span>
+									</div>
+									<div class="flex justify-between">
+										<span>Runtime Version:</span>
+										<span class="text-slate-350">go1.25.0</span>
+									</div>
+								</div>
+							</div>
+						}
+						<!-- Telemetry Output Console -->
+						@card.Card(card.Props{Class: "border-slate-900 bg-slate-900/10 backdrop-blur-sm shadow-xl p-6 md:col-span-2"}) {
+							<div class="flex items-center justify-between mb-4">
+								<h3 class="text-sm font-bold text-white tracking-tight">DIAGNOSTICS RAW DATA</h3>
+								<span class="text-[10px] text-slate-500 font-mono">Target: /metrics</span>
+							</div>
+							<div id="diagnostics-output" class="rounded-xl border border-slate-900 bg-slate-950 p-4 font-mono text-[10.5px] leading-relaxed text-slate-400 min-h-64 max-h-96 overflow-y-auto scrollbar-thin whitespace-pre select-all">
+								Click the "Pull Prometheus Metrics" button to request telemetry metrics data and view the active scraper configurations.
+							</div>
+						}
+					}
+				}
+			</main>
+			<!-- Footer -->
+			<footer class="border-t border-slate-900/50 bg-slate-950 py-8 text-center text-xs text-slate-600 relative z-10">
+				<div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+					<p>&copy; 2026 bkit-api-template. Statically built with premium Dark Mode styling.</p>
+					<div class="flex items-center space-x-4">
+						<a href="https://github.com/brian-nunez" target="_blank" class="hover:text-slate-400 transition-colors">GitHub</a>
+						<span class="text-slate-800">&bull;</span>
+						<a href="https://www.linkedin.com/in/brianjnunez/" target="_blank" class="hover:text-slate-400 transition-colors">LinkedIn</a>
+					</div>
+				</div>
+			</footer>
+		</div>
+	}
+}
+
+templ StatusGrid(status ServiceStatus) {
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+		<!-- Database Card -->
+		@card.Card(card.Props{
+			Class: "border-slate-900 bg-slate-900/20 backdrop-blur-sm shadow-xl overflow-hidden relative group hover:border-slate-850 transition-all duration-300",
+		}) {
+			<div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500 opacity-80"></div>
+			@card.Header(card.HeaderProps{Class: "p-6 pb-2"}) {
+				<div class="flex items-center justify-between">
+					@card.Title(card.TitleProps{Class: "text-slate-100 text-sm font-bold tracking-tight flex items-center gap-2.5"}) {
+						<div class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4"></path>
+							</svg>
+						</div>
+						DATABASE (bdb)
+					}
+					if status.DBConnected {
+						@badge.Badge(badge.Props{
+							Variant: badge.VariantSecondary,
+							Class:   "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase",
+						}) {
+							Online
+						}
+					} else {
+						@badge.Badge(badge.Props{
+							Variant: badge.VariantDestructive,
+							Class:   "bg-rose-500/10 text-rose-450 border-rose-500/20 px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase animate-pulse",
+						}) {
+							Offline
+						}
+					}
+				</div>
+			}
+			@card.Content(card.ContentProps{Class: "p-6 pt-3 space-y-4"}) {
+				<p class="text-xs text-slate-400 leading-normal">
+					Handles primary data tables and schema relational mappings.
+				</p>
+				<div class="space-y-2.5 bg-slate-950/60 rounded-xl p-4 border border-slate-900/60 font-mono text-[11px]">
+					<div class="flex justify-between border-b border-slate-900 pb-1.5">
+						<span class="text-slate-500">DRIVER:</span>
+						<span class="text-slate-350 font-bold">{ status.DBDriver }</span>
+					</div>
+					<div class="flex justify-between border-b border-slate-900 pb-1.5">
+						<span class="text-slate-500">CONNECTION:</span>
+						if status.DBConnected {
+							<span class="text-emerald-400 font-bold">ESTABLISHED</span>
+						} else {
+							<span class="text-rose-450 font-bold animate-pulse">FAILED</span>
+						}
+					</div>
+					<div class="flex justify-between items-center">
+						<span class="text-slate-500">POOL LIMIT:</span>
+						<div class="flex items-center space-x-2">
+							<div class="w-12 bg-slate-900 h-1.5 rounded-full overflow-hidden">
+								<div class="bg-indigo-500 h-full w-1/3"></div>
+							</div>
+							<span class="text-slate-400 text-[10px]">10 Max</span>
+						</div>
+					</div>
+				</div>
+				if status.DBError != "" {
+					<div class="rounded-xl bg-rose-500/5 border border-rose-500/10 p-3 text-[10px] text-rose-350 font-mono max-h-24 overflow-y-auto leading-relaxed scrollbar-thin">
+						{ status.DBError }
+					</div>
+				}
+			}
+		}
+		<!-- KV Store Card -->
+		@card.Card(card.Props{
+			Class: "border-slate-900 bg-slate-900/20 backdrop-blur-sm shadow-xl overflow-hidden relative group hover:border-slate-850 transition-all duration-300",
+		}) {
+			<div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500 opacity-80"></div>
+			@card.Header(card.HeaderProps{Class: "p-6 pb-2"}) {
+				<div class="flex items-center justify-between">
+					@card.Title(card.TitleProps{Class: "text-slate-100 text-sm font-bold tracking-tight flex items-center gap-2.5"}) {
+						<div class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v-2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+							</svg>
+						</div>
+						KEY-VALUE (bkv)
+					}
+					if status.KVConnected {
+						@badge.Badge(badge.Props{
+							Variant: badge.VariantSecondary,
+							Class:   "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase",
+						}) {
+							Online
+						}
+					} else {
+						@badge.Badge(badge.Props{
+							Variant: badge.VariantDestructive,
+							Class:   "bg-rose-500/10 text-rose-450 border-rose-500/20 px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase animate-pulse",
+						}) {
+							Offline
+						}
+					}
+				</div>
+			}
+			@card.Content(card.ContentProps{Class: "p-6 pt-3 space-y-4"}) {
+				<p class="text-xs text-slate-400 leading-normal">
+					Handles session caches, key-value stores and transient data.
+				</p>
+				<div class="space-y-2.5 bg-slate-950/60 rounded-xl p-4 border border-slate-900/60 font-mono text-[11px]">
+					<div class="flex justify-between border-b border-slate-900 pb-1.5">
+						<span class="text-slate-500">DRIVER:</span>
+						<span class="text-slate-350 font-bold">{ status.KVDriver }</span>
+					</div>
+					<div class="flex justify-between border-b border-slate-900 pb-1.5">
+						<span class="text-slate-500">CONNECTION:</span>
+						if status.KVConnected {
+							<span class="text-emerald-400 font-bold">ESTABLISHED</span>
+						} else {
+							<span class="text-rose-450 font-bold animate-pulse">FAILED</span>
+						}
+					</div>
+					<div class="flex justify-between items-center">
+						<span class="text-slate-500">PING RESPONSE:</span>
+						if status.KVConnected {
+							<span class="text-slate-300 font-bold">PONG (0ms)</span>
+						} else {
+							<span class="text-slate-500">N/A</span>
+						}
+					</div>
+				</div>
+				if status.KVError != "" {
+					<div class="rounded-xl bg-rose-500/5 border border-rose-500/10 p-3 text-[10px] text-rose-350 font-mono max-h-24 overflow-y-auto leading-relaxed scrollbar-thin">
+						{ status.KVError }
+					</div>
+				}
+			}
+		}
+		<!-- Telemetry Card -->
+		@card.Card(card.Props{
+			Class: "border-slate-900 bg-slate-900/20 backdrop-blur-sm shadow-xl overflow-hidden relative group hover:border-slate-850 transition-all duration-300",
+		}) {
+			<div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500 opacity-80"></div>
+			@card.Header(card.HeaderProps{Class: "p-6 pb-2"}) {
+				<div class="flex items-center justify-between">
+					@card.Title(card.TitleProps{Class: "text-slate-100 text-sm font-bold tracking-tight flex items-center gap-2.5"}) {
+						<div class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+							</svg>
+						</div>
+						TELEMETRY (btelemetry)
+					}
+					if status.TelemetryConnected {
+						@badge.Badge(badge.Props{
+							Variant: badge.VariantSecondary,
+							Class:   "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase",
+						}) {
+							Active
+						}
+					} else {
+						@badge.Badge(badge.Props{
+							Variant: badge.VariantOutline,
+							Class:   "border-slate-800 text-slate-600 px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase",
+						}) {
+							Inactive
+						}
+					}
+				</div>
+			}
+			@card.Content(card.ContentProps{Class: "p-6 pt-3 space-y-4"}) {
+				<p class="text-xs text-slate-400 leading-normal">
+					Exposes metrics scrapers and tracing providers to Prometheus.
+				</p>
+				<div class="space-y-2.5 bg-slate-950/60 rounded-xl p-4 border border-slate-900/60 font-mono text-[11px]">
+					<div class="flex justify-between border-b border-slate-900 pb-1.5">
+						<span class="text-slate-500">PROMETHEUS:</span>
+						<a href="/metrics" target="_blank" class="text-indigo-400 font-bold hover:underline cursor-pointer">/metrics</a>
+					</div>
+					<div class="flex justify-between border-b border-slate-900 pb-1.5">
+						<span class="text-slate-500">UPTIME:</span>
+						<span class="text-slate-300 font-bold">{ status.Uptime }</span>
+					</div>
+					<div class="flex justify-between items-center">
+						<span class="text-slate-500">SAMPLING RATE:</span>
+						<span class="text-slate-350 font-bold">100% (Trace)</span>
+					</div>
+				</div>
+				if status.TelemetryError != "" {
+					<div class="rounded-xl bg-rose-500/5 border border-rose-500/10 p-3 text-[10px] text-rose-350 font-mono max-h-24 overflow-y-auto leading-relaxed scrollbar-thin">
+						{ status.TelemetryError }
+					</div>
+				}
+			}
+		}
+	</div>
+}

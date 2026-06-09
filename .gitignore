@@ -1,0 +1,20 @@
+# Build artifacts
+tmp/
+*.exe
+*.test
+bin/
+server
+main
+
+# OS files
+.DS_Store
+
+# Tailwind and Templ compiled files (should happen on build)
+assets/css/output.css
+assets/js/templui/*.js
+*_templ.go
+
+# templui generated files (should happen on build)
+views/components/
+views/utils/templui.go
+assets/js/templui/

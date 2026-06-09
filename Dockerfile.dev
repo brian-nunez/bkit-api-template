@@ -1,0 +1,27 @@
+FROM golang:1.25-alpine
+
+# Install development dependencies
+RUN apk add --no-cache git curl nodejs npm make
+
+# Install Go development tools
+RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN go install github.com/air-verse/air@latest
+RUN go install github.com/templui/templui/cmd/templui@latest
+
+# Install Tailwind CSS v4 CLI globally via npm
+RUN npm install -g @tailwindcss/cli tailwindcss
+ENV NODE_PATH=/usr/local/lib/node_modules
+
+WORKDIR /workspace/bkit-api-template
+
+# Copy go module files first for better layer caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of the application code
+COPY . .
+
+EXPOSE 8080
+
+# Start hot-reloading watchers and server via Makefile dev target
+CMD ["make", "dev"]

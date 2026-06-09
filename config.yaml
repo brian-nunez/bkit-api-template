@@ -1,0 +1,42 @@
+# Application configuration template
+
+server:
+  port: 8080
+
+telemetry:
+  enabled: true
+  service_name: "bkit-api-service"
+  environment: "development"
+  enable_trace: false
+  enable_metrics: true
+  metric_mode: "pull"  # "pull" exposes prometheus metrics endpoint
+  enable_stdout: false
+
+kv:
+  enabled: true
+  driver: "local"      # Options: local, redis, sqlite
+  redis:
+    addr: "redis:6379"
+    db: 0
+    prefix: "bkit"
+
+db:
+  enabled: true
+  driver: "postgres"   # Options: postgres, mariadb, sqlite
+  postgres:
+    host: "postgres"
+    port: 5432
+    user: "postgres"
+    password: "postgrespassword"
+    dbname: "bkit_db"
+    sslmode: "disable"
+  mariadb:
+    host: "mariadb"
+    port: 3306
+    user: "bkit_user"
+    password: "mariadbpassword"
+    dbname: "bkit_db"
+  sqlite:
+    path: "data.db"
+  max_open_conns: 10
+  max_idle_conns: 5

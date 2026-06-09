@@ -1,0 +1,107 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount the main application code for hot-reloading
+      - .:/workspace/bkit-api-template
+    environment:
+      - SERVER_PORT=8080
+      - TELEMETRY_ENABLED=true
+      - TELEMETRY_SERVICE_NAME=bkit-api-service
+      - TELEMETRY_ENVIRONMENT=development
+      - TELEMETRY_ENABLE_TRACE=false
+      - TELEMETRY_ENABLE_METRICS=true
+      - TELEMETRY_METRIC_MODE=pull
+      - TELEMETRY_ENABLE_STDOUT=false
+      - KV_ENABLED=true
+      - KV_DRIVER=redis      # Options: local, redis, sqlite
+      - KV_REDIS_ADDR=redis:6379
+      - KV_REDIS_DB=0
+      - KV_REDIS_PREFIX=bkit
+      - DB_ENABLED=true
+      - DB_DRIVER=postgres    # Options: postgres, mariadb, sqlite
+      - DB_POSTGRES_HOST=postgres
+      - DB_POSTGRES_PORT=5432
+      - DB_POSTGRES_USER=postgres
+      - DB_POSTGRES_PASSWORD=postgrespassword
+      - DB_POSTGRES_DBNAME=bkit_db
+      - DB_POSTGRES_SSLMODE=disable
+      - DB_MARIADB_HOST=mariadb
+      - DB_MARIADB_PORT=3306
+      - DB_MARIADB_USER=bkit_user
+      - DB_MARIADB_PASSWORD=mariadbpassword
+      - DB_MARIADB_DBNAME=bkit_db
+      - DB_SQLITE_PATH=data.db
+      - DB_MAX_OPEN_CONNS=10
+      - DB_MAX_IDLE_CONNS=5
+      - NODE_PATH=/usr/local/lib/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 30s
+
+  postgres:
+    image: postgres:alpine
+    container_name: bkit-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: bkit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bkit_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mariadb:
+    image: mariadb:latest
+    container_name: bkit-mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: mariadbrootpassword
+      MARIADB_USER: bkit_user
+      MARIADB_PASSWORD: mariadbpassword
+      MARIADB_DATABASE: bkit_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: bkit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  mariadb_data:
+  redis_data:
