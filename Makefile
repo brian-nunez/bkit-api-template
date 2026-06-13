@@ -1,4 +1,4 @@
-.PHONY: all install-tools setup-components templ tailwind server build dev clean
+.PHONY: all install-tools setup-components generate templ tailwind server build dev clean
 
 # Detect binaries in PATH or fallback to user's ~/go/bin
 TEMPL := $(shell which templ 2>/dev/null || echo $(HOME)/go/bin/templ)
@@ -19,6 +19,11 @@ setup-components: install-tools
 	$(TEMPLUI) --force init
 	$(TEMPLUI) -force add "*"
 
+generate: setup-components
+	@echo "Generating initial templates and styles..."
+	$(TEMPL) generate
+	$(TAILWIND) -i ./assets/css/input.css -o ./assets/css/output.css
+
 templ:
 	@echo "Watching templates..."
 	$(TEMPL) generate --watch --proxy="http://localhost:8080" --open-browser=false
@@ -31,18 +36,14 @@ server:
 	@echo "Starting hot-reloading server..."
 	$(AIR)
 
-build: setup-components
+build: generate
 	@echo "Building production bundles..."
-	$(TEMPL) generate
-	$(TAILWIND) -i ./assets/css/input.css -o ./assets/css/output.css
 	@mkdir -p bin
 	go build -o bin/server ./cmd/main.go
 	@echo "Production build completed. Binary is in bin/server"
 
-dev: install-tools
+dev: generate
 	@echo "Starting development environment..."
-	# Run setup components first to ensure components exist before templ starts compiling
-	make setup-components
 	make -j3 templ tailwind server
 
 clean:
